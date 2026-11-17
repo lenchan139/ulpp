@@ -54,10 +54,16 @@ jobs:
     name: unittest + coverage (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
+    # macOS 官方 runner 经常排队 30 分钟拿不到机器（"not acquired by hosted
+    # runner"）；PR 上允许它先跑着不阻塞合并，push 到 main 时仍是硬门槛。
+    continue-on-error: ${{ github.event_name == 'pull_request' && matrix.optional }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-13]
+        include:
+          - os: ubuntu-latest
+          - os: macos-13
+            optional: true
     steps:
       - uses: actions/checkout@v7
 
