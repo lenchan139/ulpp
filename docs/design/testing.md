@@ -54,7 +54,7 @@ Ran 680 tests in ~28s
 TOTAL  5994 statements  13 missed  99%
 ```
 
-CI（Ubuntu，Python 3.11，Xvfb）实际报告：
+CI（Ubuntu + macOS，Python 3.11）实际报告：
 
 ```text
 TOTAL  5996 statements   8 missed  99%
