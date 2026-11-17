@@ -21,7 +21,7 @@ dependencies = [
 [project.optional-dependencies]
 gui = ["tkinterdnd2>=0.3"]     # 想要拖拽入文件可选装
 photo = ["opencv-python-headless>=4.8"]   # 「用照片量纸」可选装（不装就只用扫描/预设）
-dev = ["pyinstaller>=6"]
+dev = ["pyinstaller>=6", "coverage>=7"]
 
 [project.scripts]
 ulpp = "ulpp.cli:main"
