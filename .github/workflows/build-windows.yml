@@ -73,7 +73,7 @@ jobs:
       - name: 压缩
         shell: pwsh
         run: |
-          Compress-Archive -Path "dist/ulpp2/*" -DestinationPath "ulpp-${{ github.ref_name }}-full-windows-x64.zip"
+          Compress-Archive -Path "dist/ulpp2/*" -DestinationPath "ulpp-${{ github.event.pull_request.number || github.ref_name }}-full-windows-x64.zip"
       - name: 取回轻量 exe 的构建产物
         if: startsWith(github.ref, 'refs/tags/v')
         uses: actions/download-artifact@v4
