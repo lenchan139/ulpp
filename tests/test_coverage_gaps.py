@@ -504,21 +504,6 @@ class WizardStartfileTests(UiCase):
         self.assertIn("已生成", wiz.print_lbl.cget("text"))
 
 
-class CartoonToggleTests(UiCase):
-    def test_toggle_off_after_schedule_cancels_job(self):
-        from ulpp.ui.calibrate import CartoonHelp
-
-        shell = self.make_shell()
-        help_win = CartoonHelp(shell)
-        self.pump()
-        self.close_later(help_win)
-        help_win._schedule()
-        self.assertIsNotNone(help_win._after)
-        help_win.toggle()
-        self.assertFalse(help_win.playing)
-        self.assertIsNone(help_win._after)
-
-
 @unittest.skipUnless(HAS_CV and HAS_NUMPY, "需要 OpenCV")
 class CalibBranchTests(unittest.TestCase):
     def test_find_quads_skips_small_contour(self):

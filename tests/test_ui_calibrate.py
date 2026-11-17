@@ -71,11 +71,10 @@ class RenderStepTests(WizardCase):
                       if w.winfo_class() == "Label"]
             self.assertTrue(any("看不清" in t for t in labels))
 
-    def test_paper_back_button_returns_to_ask(self):
+    def test_paper_choices_rendered_as_buttons(self):
         shell, wiz = self._wizard()
         wiz.go("paper")
         texts = []
-        canvases = []
 
         def walk(widget):
             for child in widget.winfo_children():
@@ -83,20 +82,11 @@ class RenderStepTests(WizardCase):
                     texts.append(child.cget("text"))
                 except Exception:
                     pass
-                if child.winfo_class() == "Canvas":
-                    canvases.append(child)
                 walk(child)
 
         walk(wiz.body)
-        self.assertTrue(canvases)
-        drawn = " ".join(
-            str(canvas.itemcget(item, "text"))
-            for canvas in canvases
-            for item in canvas.find_all()
-            if canvas.type(item) == "text"
-        )
-        self.assertIn(shell.T("calib.yes_paper"), drawn)
-        self.assertIn(shell.T("calib.no_paper"), drawn)
+        self.assertIn(shell.T("calib.yes_paper"), texts)
+        self.assertIn(shell.T("calib.no_paper"), texts)
         wiz.go("ask")
         self.assertEqual(wiz.step, "ask")
 
@@ -485,42 +475,58 @@ class ResultTests(WizardCase):
 
 
 class HelpTests(WizardCase):
-    def test_help_plays_and_toggles(self):
+    def test_help_shows_three_panels_side_by_side(self):
         shell = self._shell()
         help_win = CartoonHelp(shell)
         self.pump()
         self.close_later(help_win)
-        self.assertTrue(help_win.playing)
-        help_win.toggle()
-        self.assertFalse(help_win.playing)
-        help_win.toggle()
-        self.assertTrue(help_win.playing)
-        help_win._schedule()
-        help_win._next()
-        help_win.playing = False
-        help_win._next()
+        self.assertEqual(len(help_win.canvases), 3)
+        for canvas in help_win.canvases:
+            self.assertGreaterEqual(len(canvas.find_all()), 3)
+        labels = []
 
-    def test_help_draws_three_frames(self):
-        shell = self._shell()
-        help_win = CartoonHelp(shell)
-        self.pump()
-        self.close_later(help_win)
-        for index in (0, 1, 2):
-            help_win.show(index)
-            self.assertEqual(help_win.index, index)
-            self.assertGreater(len(help_win.canvas.find_all()), 0)
-            self.assertTrue(help_win.caption.cget("text"))
+        def walk(widget):
+            for child in widget.winfo_children():
+                try:
+                    labels.append(child.cget("text"))
+                except Exception:
+                    pass
+                walk(child)
 
-    def test_help_geom_falls_back_for_tiny_canvas(self):
+        walk(help_win)
+        for index in (1, 2, 3):
+            self.assertIn(shell.T("calib.help%d" % index), labels)
+
+    def test_help_redraw_all_keeps_drawing(self):
         shell = self._shell()
         help_win = CartoonHelp(shell)
         self.pump()
         self.close_later(help_win)
-        with mock.patch.object(help_win.canvas, "winfo_width", return_value=1), \
-                mock.patch.object(help_win.canvas, "winfo_height", return_value=1), \
-                mock.patch.object(help_win.canvas, "winfo_reqwidth",
-                                  return_value=100), \
-                mock.patch.object(help_win.canvas, "winfo_reqheight",
-                                  return_value=80):
-            w, h = help_win._geom()
-        self.assertEqual((w, h), (100.0, 80.0))
+        before = [len(c.find_all()) for c in help_win.canvases]
+        self.assertTrue(all(n > 0 for n in before))
+        help_win._draw_all()
+        after = [len(c.find_all()) for c in help_win.canvases]
+        self.assertEqual(before, after)
+
+    def test_help_close_button_destroys(self):
+        shell = self._shell()
+        help_win = CartoonHelp(shell)
+        self.pump()
+        buttons = []
+
+        def walk(widget):
+            for child in widget.winfo_children():
+                if child.winfo_class() == "Button":
+                    buttons.append(child)
+                walk(child)
+
+        walk(help_win)
+        close = [b for b in buttons
+                 if b.cget("text") == shell.T("calib.help_close")]
+        self.assertTrue(close)
+        close[0].invoke()
+        try:
+            exists = help_win.winfo_exists()
+        except Exception:
+            exists = 0
+        self.assertFalse(exists)

@@ -11,7 +11,7 @@
 | # | 关卡 | 工具 | 底线 | 在哪跑 |
 |---|---|---|---|---|
 | 1 | 语法/导入 | `compileall` | 0 错误 | 本地 + CI |
-| 2 | 单元测试 | stdlib unittest（751 个用例） | 全绿 | 本地 + CI（Linux/macOS/Windows） |
+| 2 | 单元测试 | stdlib unittest（750 个用例） | 全绿 | 本地 + CI（Linux/macOS/Windows） |
 | 3 | BDD 场景 | `tests/bdd/gherkin.py` + `features/*.feature` | 全绿 | 并入关卡 2 |
 | 4 | 属性测试 | 固定种子随机生成 | 全绿 | 并入关卡 2 |
 | 5 | 约束测试 | `tests/test_constraints.py` | 全绿 | 并入关卡 2 |
