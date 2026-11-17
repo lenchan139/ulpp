@@ -19,7 +19,12 @@ shell = Shell(root, flow=Flow(), lang=None)
 root.update_idletasks()
 try:
     win = CartoonHelp(shell)
+    import inspect
     print("constructed; attrs:", sorted(vars(win)))
+    print("class:", type(win).__module__, type(win).__name__)
+    print("class methods:", [n for n in sorted(vars(type(win)))
+                             if not n.startswith("__")])
+    print("init source:\n", inspect.getsource(type(win).__init__)[:400])
     win.show(1)
     print("show ok; playing:", win.playing)
 except Exception:
