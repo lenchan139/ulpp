@@ -54,21 +54,27 @@ Ran 677 tests in ~28s
 TOTAL  5994 statements  13 missed  99%
 ```
 
-大部分模块 100%，包括：builder / parser / sheets / templates / config / presets /
-calibration / partial / imagex / scan / scan_board / cli / __main__，以及全部 v2 界面
-（`ui/shell.py`、`ui/calibrate.py`、`ui/partial.py`、`ui/advanced.py`、`ui/screens.py`）
-和老界面 `partial_gui.py`、`wizard.py`。
+CI（Ubuntu，Python 3.11，Xvfb）实际报告：
 
-剩余 13 行不是“没写用例”，而是三类环境相关分支：
+```text
+TOTAL  5996 statements   8 missed  99%
+```
+
+大部分模块 100%，包括：builder / parser / sheets / templates / config / presets /
+calibration / partial / imagex / scan / scan_board / cli / i18n / __main__，以及全部
+v2 界面（`ui/shell.py`、`ui/calibrate.py`、`ui/partial.py`、`ui/advanced.py`、
+`ui/screens.py`）和老界面 `partial_gui.py`、`wizard.py`。
+
+CI 上剩余 8 行不是“没写用例”，而是三类环境相关分支：
 
 | 位置 | 原因 |
 |---|---|
-| `gui.py:31`、`ui/shell.py:34` | `tkinterdnd2` 可选依赖导入成功分支；本机没装，装了才有 |
-| `scan_calib.py` 的 6 个 `continue`（77/99/130/134/211/344）、`scan_dewarp.py:90` | Python 3.9 不为部分 `continue` 发 line 事件；Python 3.10+ 会计入 |
-| `ui/shell.py:102`、`ui/shell.py:424` | `except Exception:` 行在异常跳转时同样没有 line 事件（3.9） |
+| `gui.py:31`、`ui/shell.py:34` | `tkinterdnd2` 可选依赖导入成功分支；CI 没装，装了才有 |
+| `ui/shell.py:102`、`ui/shell.py:424` | `except Exception:` 行在异常跳转时通常不产生 line 事件 |
+| `scan_calib.py:99`、`scan_dewarp.py:90` | 部分 `continue` 语句在 CPython 里不产生 line 事件（与版本/结构有关） |
 | `scan.py:163`、`scan_photo.py:49` | 防御性分支：输入退化时提前返回/交换点序；正常路径构造不出来 |
 
-因此 CI（Python 3.11）上的数字通常比本机高；本机这 13 行里，多数在 3.11 上会被计入。
+本机 Python 3.9 还会少记几个 `continue` 行（见上表），所以本机是 13 行。
 
 ## 4. GitHub Actions
 
