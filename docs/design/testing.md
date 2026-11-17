@@ -87,9 +87,8 @@ CI 上剩余 8 行不是“没写用例”，而是三类环境相关分支：
 矩阵覆盖 **Ubuntu** 和 **macOS**：
 
 1. 两个平台都用 Python 3.15；Linux 额外装 `python3-tk` + `xvfb`（Tk 用例在
-   `xvfb-run` 下跑），macOS 直接使用 runner 自带的 Aqua/Tk（PR 上 macOS 因
-   官方 runner 容量经常排队超时，设为"尽力跑、不阻塞合并"；push 到 main
-   时仍是硬门槛）；
+   `xvfb-run` 下跑），macOS 直接使用 runner 自带的 Aqua/Tk（官方 runner 容量经常排队超时，
+   故 macOS 任务只在 push 到 main / 打 tag / 手动触发时跑，不进 PR 检查）；
 2. `pip install -e ".[photo]" coverage`（PDF/图像/OpenCV 依赖一次装齐）；
 3. 跑全部 unittest；
 4. 各平台生成 `coverage.txt` / `coverage.xml` / `htmlcov/` 并上传为

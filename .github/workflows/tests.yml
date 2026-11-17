@@ -144,9 +144,10 @@ jobs:
     name: unittest + coverage (macos)
     runs-on: macos-latest
     timeout-minutes: 25
-    # macOS 官方 runner 经常排队 30 分钟拿不到机器（"not acquired by hosted
-    # runner"）；PR 上允许它先跑着不阻塞合并，push 到 main 时仍是硬门槛。
-    continue-on-error: ${{ github.event_name == 'pull_request' }}
+    # macOS 官方 runner 长期排队超时（"not acquired by hosted runner"），
+    # 不在 PR 上跑（否则 PR 检查被 infra 卡死）；push 到 main / 打 tag /
+    # workflow_dispatch 时照常硬门槛跑。
+    if: github.event_name != 'pull_request'
     steps:
       - uses: actions/checkout@v7
 
