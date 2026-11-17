@@ -50,6 +50,22 @@ jobs:
             htmlcov/
           if-no-files-found: warn
 
+  unittest:
+    name: unittest + coverage (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
       - name: Install Tk + Xvfb (Linux)
         if: runner.os == 'Linux'
         run: |
