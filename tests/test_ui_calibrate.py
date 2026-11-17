@@ -381,8 +381,12 @@ class CornerTests(WizardCase):
     def test_measure_corners_requires_four(self):
         shell, wiz = self._corners_wizard()
         wiz.corners = [(1, 1)]
-        wiz.measure_corners()
+        fake_mod = types.ModuleType("ulpp.scan_calib")
+        fake_mod.measure_photo_corners = mock.Mock()
+        with mock.patch.dict(sys.modules, {"ulpp.scan_calib": fake_mod}):
+            wiz.measure_corners()
         self.assertEqual(wiz.step, "corners")
+        fake_mod.measure_photo_corners.assert_not_called()
 
     def test_measure_corners_success(self):
         shell, wiz = self._corners_wizard()
