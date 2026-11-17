@@ -50,6 +50,14 @@ jobs:
             htmlcov/
           if-no-files-found: warn
 
+      - name: PROBE CartoonHelp (temporary)
+        if: always()
+        run: |
+          xvfb-run -a python -m unittest tests.test_coverage_gaps.CartoonToggleTests -v 2>&1 | tail -20 || true
+          xvfb-run -a python -m unittest tests.test_bdd tests.test_coverage_gaps.CartoonToggleTests -v 2>&1 | tail -25 || true
+          xvfb-run -a python -m unittest tests.test_ui_calibrate.HelpTests -v 2>&1 | tail -25 || true
+          xvfb-run -a python scripts/probe_help.py 2>&1 | tail -40 || true
+
   unittest:
     name: unittest + coverage (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
