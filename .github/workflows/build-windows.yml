@@ -15,8 +15,8 @@ jobs:
   test:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: 安装依赖
@@ -32,8 +32,8 @@ jobs:
     needs: test
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: 安装依赖
@@ -43,7 +43,7 @@ jobs:
       - name: 打包 exe（轻量版，不含 OpenCV）
         run: pyinstaller packaging/ulpp.spec --noconfirm
       - name: 上传构建产物
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: exe-${{ github.event.pull_request.number || github.ref_name }}
           path: dist/*.exe
@@ -54,8 +54,8 @@ jobs:
     needs: [test, build-exe]
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: 安装依赖（含 photo extra）
@@ -76,7 +76,7 @@ jobs:
           Compress-Archive -Path "dist/ulpp2/*" -DestinationPath "ulpp-${{ github.event.pull_request.number || github.ref_name }}-full-windows-x64.zip"
       - name: 取回轻量 exe 的构建产物
         if: startsWith(github.ref, 'refs/tags/v')
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: exe-${{ github.ref_name }}
           path: dist
