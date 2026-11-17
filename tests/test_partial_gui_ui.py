@@ -638,7 +638,8 @@ class ToolTests(PartialCase):
 
     def test_open_path_all_platforms(self):
         win = self._window()
-        with mock.patch("sys.platform", "darwin"), \
+        with mock.patch.object(pg.os, "name", "posix"), \
+                mock.patch("sys.platform", "darwin"), \
                 mock.patch("subprocess.Popen") as popen:
             win._open_path("/tmp/x.pdf")
         popen.assert_called_once_with(["open", "/tmp/x.pdf"])

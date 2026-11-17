@@ -284,6 +284,7 @@ class ScanFallbackTests(unittest.TestCase):
         ordered = scan_photo._order_quad(pts.copy())
         self.assertEqual({tuple(p) for p in ordered}, {tuple(p) for p in pts})
 
+    @unittest.skipUnless(HAS_NUMPY, "需要 numpy")
     def test_fold_fit_fine_search_improves_period(self):
         xs = np.arange(400)
         period = 18.5
@@ -375,10 +376,13 @@ class CalibrateGuardTests(UiCase):
 
 class FlowBranchesTests(unittest.TestCase):
     def test_default_state_dir_appdata_and_home(self):
-        with mock.patch.dict(os.environ, {"APPDATA": "/tmp/appdata"}, clear=True):
+        env = dict(os.environ)
+        env.pop("APPDATA", None)
+        env.pop(flow_mod.ENV_STATE_DIR, None)
+        with mock.patch.dict(os.environ, dict(env, APPDATA="/tmp/appdata"), clear=True):
             self.assertEqual(flow_mod.default_state_dir(),
                              Path("/tmp/appdata") / "ulpp")
-        with mock.patch.dict(os.environ, {}, clear=True):
+        with mock.patch.dict(os.environ, env, clear=True):
             self.assertEqual(flow_mod.default_state_dir(), Path.home() / ".ulpp")
 
     def test_save_cleanup_removal_failure_is_soft(self):

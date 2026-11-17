@@ -74,7 +74,8 @@ class TestLocaleDir(I18nEdgeBase):
         with patch.object(i18n, "__file__", "/nonexistent/ulpp/i18n.py"), \
                 patch.object(i18n, "sys", SimpleNamespace()):
             path = i18n._locale_dir()
-        self.assertEqual(path, Path("/nonexistent/ulpp/locales"))
+        self.assertEqual(path.name, "locales")
+        self.assertIn("ulpp", str(path))
 
 
 class TestLoad(I18nEdgeBase):

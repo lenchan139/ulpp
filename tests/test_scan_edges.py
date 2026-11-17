@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 """scan 的取样、拟合、告警与命令行分支。"""
 
+import io
 import os
 import shutil
 import unittest
 import uuid
+from contextlib import redirect_stdout
 from pathlib import Path
 from unittest.mock import patch
 
@@ -216,7 +218,8 @@ class TestMeasureImage(ScanEdgeBase):
 
 class TestMain(unittest.TestCase):
     def test_no_args_returns_usage(self):
-        self.assertEqual(scan.main([]), 2)
+        with redirect_stdout(io.StringIO()):
+            self.assertEqual(scan.main([]), 2)
 
     def test_main_success_and_failure(self):
         good = measurement()
@@ -229,7 +232,8 @@ class TestMain(unittest.TestCase):
                 raise RuntimeError("nope")
             return bad if path == "weak" else good
 
-        with patch.object(scan, "measure_file", side_effect=fake):
+        with patch.object(scan, "measure_file", side_effect=fake), \
+                redirect_stdout(io.StringIO()):
             rc = scan.main(["good", "weak", "bad"])
         self.assertEqual(rc, 1)
         self.assertEqual(calls, ["good", "weak", "bad"])

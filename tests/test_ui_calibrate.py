@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import sys
 import types
 from pathlib import Path
 from unittest import mock
@@ -202,10 +203,11 @@ class PrintShootRouteTests(WizardCase):
 
     def test_pick_photo_success(self):
         shell, wiz = self._wizard()
+        fake_mod = types.ModuleType("ulpp.scan_calib")
+        fake_mod.measure_photo_calibrated = mock.Mock(return_value=FakeMeasurement())
         with mock.patch("tkinter.filedialog.askopenfilename",
                         return_value="/tmp/p.jpg"), \
-                mock.patch("ulpp.scan_calib.measure_photo_calibrated",
-                           return_value=FakeMeasurement()):
+                mock.patch.dict(sys.modules, {"ulpp.scan_calib": fake_mod}):
             wiz.pick_photo()
         self.assertEqual(wiz.step, "result")
         self.assertFalse(wiz.measurement_plain)
@@ -213,9 +215,11 @@ class PrintShootRouteTests(WizardCase):
     def test_pick_photo_failure_goes_to_corners(self):
         shell, wiz = self._wizard()
         photo = self._photo()
+        fake_mod = types.ModuleType("ulpp.scan_calib")
+        fake_mod.measure_photo_calibrated = mock.Mock(
+            side_effect=RuntimeError("认不出纸边"))
         with mock.patch("tkinter.filedialog.askopenfilename", return_value=photo), \
-                mock.patch("ulpp.scan_calib.measure_photo_calibrated",
-                           side_effect=RuntimeError("认不出纸边")):
+                mock.patch.dict(sys.modules, {"ulpp.scan_calib": fake_mod}):
             wiz.pick_photo()
         self.assertEqual(wiz.step, "corners")
         self.assertEqual(wiz.photo_path, photo)
@@ -383,10 +387,11 @@ class CornerTests(WizardCase):
     def test_measure_corners_success(self):
         shell, wiz = self._corners_wizard()
         wiz.corners = [(1, 1), (100, 1), (100, 80), (1, 80)]
-        with mock.patch("ulpp.scan_calib.measure_photo_corners",
-                        return_value=FakeMeasurement()) as measure:
+        fake_mod = types.ModuleType("ulpp.scan_calib")
+        fake_mod.measure_photo_corners = mock.Mock(return_value=FakeMeasurement())
+        with mock.patch.dict(sys.modules, {"ulpp.scan_calib": fake_mod}):
             wiz.measure_corners()
-        measure.assert_called_once()
+        fake_mod.measure_photo_corners.assert_called_once()
         self.assertEqual(wiz.step, "result")
         self.assertFalse(wiz.measurement_plain)
         self.assertEqual(wiz.source, wiz.photo_path)
@@ -394,8 +399,10 @@ class CornerTests(WizardCase):
     def test_measure_corners_failure_stays_on_corners(self):
         shell, wiz = self._corners_wizard()
         wiz.corners = [(1, 1), (100, 1), (100, 80), (1, 80)]
-        with mock.patch("ulpp.scan_calib.measure_photo_corners",
-                        side_effect=RuntimeError("四边形不合法")):
+        fake_mod = types.ModuleType("ulpp.scan_calib")
+        fake_mod.measure_photo_corners = mock.Mock(
+            side_effect=RuntimeError("四边形不合法"))
+        with mock.patch.dict(sys.modules, {"ulpp.scan_calib": fake_mod}):
             wiz.measure_corners()
         self.assertEqual(wiz.step, "corners")
         self.assertEqual(wiz.error, "四边形不合法")

@@ -125,11 +125,14 @@ class TestTemplates(TempDirMixin, unittest.TestCase):
         self.assertIn("2×2", t.label())
 
     def test_state_dir_override(self):
+        env = dict(os.environ)
+        env.pop("APPDATA", None)
+        env.pop("ULPP_STATE_DIR", None)
         with patch.dict(os.environ, {"ULPP_STATE_DIR": self.dir}, clear=True):
             self.assertEqual(templates._state_dir(), Path(self.dir))
-        with patch.dict(os.environ, {"APPDATA": self.dir}, clear=True):
+        with patch.dict(os.environ, dict(env, APPDATA=self.dir), clear=True):
             self.assertEqual(templates._state_dir(), Path(self.dir) / "ulpp")
-        with patch.dict(os.environ, {}, clear=True):
+        with patch.dict(os.environ, env, clear=True):
             self.assertEqual(templates._state_dir(), Path.home() / ".ulpp")
 
     def test_adjusted_invalid_value(self):

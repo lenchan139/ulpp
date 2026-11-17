@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import queue
+import sys
 import types
 from pathlib import Path
 from unittest import mock
@@ -176,18 +177,20 @@ class ScanTests(UiCase):
             shell.ask_photo_calibrated()
         self.assertIsNone(shell.measurement)
 
-        import ulpp.scan_calib as scan_calib
-
         fake = mock.Mock(return_value=FakeMeasurement())
+        fake_mod = types.ModuleType("ulpp.scan_calib")
+        fake_mod.measure_photo_calibrated = fake
         with mock.patch.object(shell, "_pick_photo", return_value="/tmp/p.jpg"), \
-                mock.patch.object(scan_calib, "measure_photo_calibrated", fake):
+                mock.patch.dict(sys.modules, {"ulpp.scan_calib": fake_mod}):
             shell.ask_photo_calibrated()
         self.assertIsNotNone(shell.measurement)
         self.assertFalse(shell.photo_fallback)
 
+        fake_mod2 = types.ModuleType("ulpp.scan_calib")
+        fake_mod2.measure_photo_calibrated = mock.Mock(
+            side_effect=RuntimeError("看不清"))
         with mock.patch.object(shell, "_pick_photo", return_value="/tmp/p.jpg"), \
-                mock.patch.object(scan_calib, "measure_photo_calibrated",
-                                  side_effect=RuntimeError("看不清")):
+                mock.patch.dict(sys.modules, {"ulpp.scan_calib": fake_mod2}):
             shell.ask_photo_calibrated()
         self.assertEqual(shell.scan_error, "看不清")
 
@@ -561,7 +564,8 @@ class GenerateTests(UiCase):
 class OpenPathTests(UiCase):
     def test_open_path_darwin(self):
         shell = self.make_shell()
-        with mock.patch("sys.platform", "darwin"), \
+        with mock.patch.object(ShellMod.os, "name", "posix"), \
+                mock.patch("sys.platform", "darwin"), \
                 mock.patch("subprocess.Popen") as popen:
             shell._open_path("/tmp/x.pdf")
         popen.assert_called_once_with(["open", "/tmp/x.pdf"])
