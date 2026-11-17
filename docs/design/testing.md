@@ -59,7 +59,7 @@ Ran 750 tests in ~50s
 TOTAL  5959 statements  13 missed  99%
 ```
 
-CI（Ubuntu + macOS，Python 3.11）实际报告：
+CI（Ubuntu + macOS，Python 3.15）实际报告：
 
 ```text
 TOTAL  5961 statements   8 missed  99%
@@ -86,7 +86,7 @@ CI 上剩余 8 行不是“没写用例”，而是三类环境相关分支：
 `.github/workflows/tests.yml` 在 PR、push 到 `main/master`、手动触发时运行，
 矩阵覆盖 **Ubuntu** 和 **macOS**：
 
-1. 两个平台都用 Python 3.11；Linux 额外装 `python3-tk` + `xvfb`（Tk 用例在
+1. 两个平台都用 Python 3.15；Linux 额外装 `python3-tk` + `xvfb`（Tk 用例在
    `xvfb-run` 下跑），macOS 直接使用 runner 自带的 Aqua/Tk（PR 上 macOS 因
    官方 runner 容量经常排队超时，设为"尽力跑、不阻塞合并"；push 到 main
    时仍是硬门槛）；
