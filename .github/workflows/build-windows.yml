@@ -45,7 +45,7 @@ jobs:
       - name: 上传构建产物
         uses: actions/upload-artifact@v4
         with:
-          name: exe-${{ github.ref_name }}
+          name: exe-${{ github.event.pull_request.number || github.ref_name }}
           path: dist/*.exe
           if-no-files-found: error
 
