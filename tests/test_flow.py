@@ -179,5 +179,73 @@ class StoreTests(unittest.TestCase):
                          Path(self.dir.name) / F.STATE_FILE)
 
 
+    def test_default_state_dir_prefers_override_then_appdata(self):
+        env = dict(os.environ)
+        env.pop("APPDATA", None)
+        env.pop(F.ENV_STATE_DIR, None)
+        with mock.patch.dict(os.environ, dict(env, APPDATA="/tmp/appdata"),
+                             clear=True):
+            self.assertEqual(F.default_state_dir(), Path("/tmp/appdata") / "ulpp")
+
+    def test_default_state_dir_falls_back_to_home(self):
+        env = dict(os.environ)
+        env.pop("APPDATA", None)
+        env.pop(F.ENV_STATE_DIR, None)
+        with mock.patch.dict(os.environ, env, clear=True):
+            self.assertEqual(F.default_state_dir(), Path.home() / ".ulpp")
+
+
+class RatchetTests(unittest.TestCase):
+    """变异测试补出来的用例：把“看似无关”的行为也钉死。"""
+
+    def setUp(self):
+        self.dir = Path(tempfile.gettempdir()) / ("ulpp_flow_%s" % uuid.uuid4().hex[:8])
+        self.dir.mkdir(parents=True, exist_ok=True)
+        self.path = self.dir / "v2_flow.json"
+
+    def tearDown(self):
+        for item in list(self.dir.glob("*")):
+            try:
+                item.unlink()
+            except OSError:
+                pass
+
+    def test_state_version_is_three(self):
+        self.assertEqual(F.STATE_VERSION, 3)
+        self.assertEqual(F.Flow().to_dict()["version"], F.STATE_VERSION)
+
+    def test_fresh_flow_is_not_finished(self):
+        self.assertFalse(F.Flow().finished)
+        self.assertFalse(F.Flow().is_skipped("sheet"))
+
+    def test_empty_steps_fall_back_to_default(self):
+        f = F.Flow(steps=())
+        self.assertEqual(f.current, "sheet")
+        self.assertEqual(f.steps, F.STEP_IDS)
+
+    def test_missing_index_defaults_to_first(self):
+        f = F.Flow.from_dict({"answers": {"paper": "45"}})
+        self.assertEqual(f.current, "sheet")
+        self.assertEqual(f.number, 1)
+
+    def test_save_creates_missing_parent_dirs(self):
+        nested = self.dir / "deep" / "nested"
+        target = nested / F.STATE_FILE
+        f = F.Flow()
+        f.answer("paper", "45")
+        self.assertEqual(f.save(path=target), target)
+        self.assertTrue(target.is_file())
+
+    def test_saved_file_is_exact_json_layout(self):
+        f = F.Flow()
+        f.answer("paper", "标签")
+        f.next()
+        target = f.save(path=self.path)
+        expected = json.dumps(f.to_dict(), ensure_ascii=False, indent=2)
+        self.assertEqual(target.read_text(encoding="utf-8"), expected)
+        # 非中文答案不被 \u 转义
+        self.assertIn("标签", target.read_text(encoding="utf-8"))
+
+
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()

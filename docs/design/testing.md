@@ -33,10 +33,15 @@ python3 -m coverage report -m
 | 层 | 文件示例 | 做法 |
 |---|---|---|
 | 纯逻辑 | `test_flow.py`、`test_partial_plan.py`、`test_parser*.py` | 不碰 Tk / 文件系统，直接断言 |
+| 属性/生成 | `test_properties.py` | 固定种子随机输入，钉不变量 |
+| 业务场景（BDD） | `features/*.feature` + `test_bdd.py` | Gherkin 场景跑真实代码 |
+| 硬约束 | `test_constraints.py` | 离线 / tkinter-only / 命名 / 版本一致 |
 | 文件与配置 | `test_sheets*.py`、`test_templates.py`、`test_cli_edges.py` | 每个用例一个临时状态目录，退出时删 |
 | 扫描/拍照 | `test_scan*.py`、`test_scan_device_edges.py` | 合成图 + OpenCV；没装 OpenCV 时 `skipUnless` |
 | Tk 界面 | `test_ui_*.py`、`test_gui_ui.py`、`test_partial_gui_ui.py` | 真 `tk.Tk()`，`withdraw`；对话框用 `mock.patch` 拦掉 |
 | 公共底座 | `ui_harness.py` | 临时 `ULPP_STATE_DIR` / `XDG_CONFIG_HOME`、root 生命周期、`close_later` |
+
+质量门（覆盖率 + 指标 + 变异）与放行流程见 [qa.md](qa.md)。
 
 UI 用例的约定：
 
@@ -50,7 +55,7 @@ UI 用例的约定：
 本机（macOS，Python 3.9，Tk 8.5.9，numpy/OpenCV 已装）：
 
 ```text
-Ran 680 tests in ~28s
+Ran 751 tests in ~50s
 TOTAL  5994 statements  13 missed  99%
 ```
 
@@ -92,7 +97,9 @@ CI 上剩余 8 行不是“没写用例”，而是三类环境相关分支：
    后续推送**更新同一条**而不是刷屏。
 
 仓库里原有的 `build-windows.yml` 继续覆盖 Windows（不含 numpy/OpenCV 的最小依赖），
-因此 Linux / macOS / Windows 三条线都会跑同一套 unittest。
+因此 Linux / macOS / Windows 三条线都会跑同一套 unittest。`tests.yml` 还有一个
+quality job：在 Linux 上跑 `scripts/quality_gate.py`（compileall + 覆盖率 +
+指标棘轮 + 变异抽查），产物上传为 `quality-gate-report` artifact。
 
 Fork PR 的评论权限可能被 GitHub 限制，所以评论步骤设了 `continue-on-error`；
 测试和覆盖率门槛仍然会正常判定。

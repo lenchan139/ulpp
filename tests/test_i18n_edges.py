@@ -37,8 +37,14 @@ class I18nEdgeBase(unittest.TestCase):
 
 class TestWarn(I18nEdgeBase):
     def test_warn_without_stderr(self):
-        with patch.object(i18n, "sys", SimpleNamespace(stderr=None)):
+        import io
+        from contextlib import redirect_stdout
+
+        buffer = io.StringIO()
+        with patch.object(i18n, "sys", SimpleNamespace(stderr=None)), \
+                redirect_stdout(buffer):
             self.assertIsNone(i18n._warn("ignored"))
+        self.assertEqual(buffer.getvalue(), "")
 
     def test_warn_once_deduplicates(self):
         with patch.object(i18n, "_warn") as warn:
@@ -46,6 +52,49 @@ class TestWarn(I18nEdgeBase):
             i18n._warn_once("same-key", "second")
         self.assertEqual(warn.call_count, 1)
         self.assertIn("same-key", i18n._WARNED)
+
+    def test_warn_once_missing_key_starts_fresh(self):
+        i18n._WARNED.clear()          # 去重是全局的：先清掉别的用例留下的记录
+        with patch.object(i18n, "_warn") as warn:
+            i18n._warn_once("fresh-key", "first")
+            i18n._warn_once("fresh-key", "second")
+        self.assertEqual(warn.call_count, 1)
+        self.assertIn("fresh-key", i18n._WARNED)
+
+
+class TestInit(I18nEdgeBase):
+    def test_ensure_language_initializes_once(self):
+        i18n._CURRENT = i18n.DEFAULT_LANGUAGE
+        i18n._INITIALIZED = False
+        with patch.dict(os.environ, {"LC_ALL": "en_US.UTF-8"}, clear=True):
+            self.assertEqual(i18n.ensure_language(), "en_US")
+        i18n._CURRENT = "zh_CN"
+        i18n._INITIALIZED = True
+        self.assertEqual(i18n.ensure_language(), "zh_CN")
+
+    def test_module_default_is_not_initialized(self):
+        """import 时的默认值：没设置过语言 = 未初始化（变异 27 行）。"""
+        import importlib
+
+        saved = (i18n._PACKS.copy(), i18n._CURRENT, i18n._INITIALIZED,
+                 set(i18n._WARNED))
+        importlib.reload(i18n)
+        try:
+            self.assertFalse(i18n._INITIALIZED)
+            self.assertEqual(i18n._CURRENT, i18n.DEFAULT_LANGUAGE)
+            self.assertEqual(i18n._WARNED, set())
+        finally:
+            i18n._PACKS.clear()
+            i18n._PACKS.update(saved[0])
+            i18n._CURRENT = saved[1]
+            i18n._INITIALIZED = saved[2]
+            i18n._WARNED.clear()
+            i18n._WARNED.update(saved[3])
+
+    def test_load_pack_uses_requested_language(self):
+        en = i18n.load_pack("en")
+        zh = i18n.load_pack("zh_CN")
+        self.assertNotEqual(en, zh)
 
 
 class TestNormalize(I18nEdgeBase):
@@ -118,6 +167,7 @@ class TestResolve(I18nEdgeBase):
             self.assertIsNone(i18n._system_language())
 
     def test_empty_pack_falls_back_to_default(self):
+        i18n._WARNED.clear()
         with patch.object(i18n, "_load", return_value={}), \
                 patch.object(i18n, "_warn") as warn:
             code = i18n.resolve_language("en")

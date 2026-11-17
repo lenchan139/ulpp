@@ -38,3 +38,9 @@ debug.log
 标签输出/
 label-output/
 
+
+# 质量门产物
+coverage.json
+coverage.txt
+quality.json
+mutation.json
