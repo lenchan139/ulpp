@@ -78,14 +78,21 @@ CI 上剩余 8 行不是“没写用例”，而是三类环境相关分支：
 
 ## 4. GitHub Actions
 
-`.github/workflows/tests.yml` 在 PR、push 到 `main/master`、手动触发时运行：
+`.github/workflows/tests.yml` 在 PR、push 到 `main/master`、手动触发时运行，
+矩阵覆盖 **Ubuntu** 和 **macOS**：
 
-1. Ubuntu + Python 3.11 + `python3-tk` + `xvfb`；
+1. 两个平台都用 Python 3.11；Linux 额外装 `python3-tk` + `xvfb`（Tk 用例在
+   `xvfb-run` 下跑），macOS 直接使用 runner 自带的 Aqua/Tk；
 2. `pip install -e ".[photo]" coverage`（PDF/图像/OpenCV 依赖一次装齐）；
-3. `xvfb-run -a python -m coverage run ...` 跑全部 unittest；
-4. 生成 `coverage.txt` / `coverage.xml` / `htmlcov/` 并上传 artifact；
+3. 跑全部 unittest；
+4. 各平台生成 `coverage.txt` / `coverage.xml` / `htmlcov/` 并上传为
+   `coverage-report-<os>` artifact；
 5. 覆盖率低于 **95%** 直接判失败；
-6. 把表格写进 Job Summary；PR 上发一条带标记的评论，后续推送**更新同一条**而不是刷屏。
+6. 把表格写进各自的 Job Summary；PR 上由 Ubuntu 任务发一条带标记的评论，
+   后续推送**更新同一条**而不是刷屏。
+
+仓库里原有的 `build-windows.yml` 继续覆盖 Windows（不含 numpy/OpenCV 的最小依赖），
+因此 Linux / macOS / Windows 三条线都会跑同一套 unittest。
 
 Fork PR 的评论权限可能被 GitHub 限制，所以评论步骤设了 `continue-on-error`；
 测试和覆盖率门槛仍然会正常判定。

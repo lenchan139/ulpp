@@ -48,7 +48,7 @@ class BasicsTests(WizardCase):
         self.assertEqual(wiz.lang, "zh_CN")
         self.assertEqual(wiz.T("cancel"), "取消")
         self.assertIn("第 1 步", wiz.T("step_of", title="位置校准", n=1, total=9))
-        self.assertEqual(wiz.S(10), 10)
+        self.assertEqual(wiz.S(10), int(round(10 * wiz.z)))
         self.assertIn(wiz.fam, wiz.f(10)[0])
         self.assertEqual(len(wiz.fp(20)), 2)
         self.assertIs(wiz.TH, wizard_mod.LIGHT)
