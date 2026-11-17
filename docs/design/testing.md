@@ -56,13 +56,13 @@ UI 用例的约定：
 
 ```text
 Ran 750 tests in ~50s
-TOTAL  5994 statements  13 missed  99%
+TOTAL  5959 statements  13 missed  99%
 ```
 
 CI（Ubuntu + macOS，Python 3.11）实际报告：
 
 ```text
-TOTAL  5996 statements   8 missed  99%
+TOTAL  5961 statements   8 missed  99%
 ```
 
 大部分模块 100%，包括：builder / parser / sheets / templates / config / presets /
