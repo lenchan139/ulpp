@@ -12,6 +12,12 @@ from ulpp.ui.flow import Flow
 from ulpp.ui.shell import Shell
 
 print("default root before:", tk._default_root)
+import ulpp
+import ulpp.ui.calibrate as cal
+
+print("ulpp.__file__:", ulpp.__file__)
+print("cal.__file__:", cal.__file__)
+print("cal source head:", "".join(open(cal.__file__).readlines()[:3]))
 root = tk.Tk()
 root.withdraw()
 print("default root after Tk():", tk._default_root)
