@@ -1,0 +1,30 @@
+name: probe
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Tk + Xvfb + deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-tk xvfb
+          python -m pip install -e ".[photo]" coverage
+
+      - name: CartoonHelp alone
+        run: xvfb-run -a python -m unittest tests.test_coverage_gaps.CartoonToggleTests -v 2>&1 | tail -20
+
+      - name: CartoonHelp after BDD
+        run: xvfb-run -a python -m unittest tests.test_bdd tests.test_coverage_gaps.CartoonToggleTests -v 2>&1 | tail -25
+
+      - name: HelpTests alone
+        run: xvfb-run -a python -m unittest tests.test_ui_calibrate.HelpTests -v 2>&1 | tail -25
+
+      - name: Manual probe
+        run: xvfb-run -a python scripts/probe_help.py
