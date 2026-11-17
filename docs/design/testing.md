@@ -50,7 +50,7 @@ UI 用例的约定：
 本机（macOS，Python 3.9，Tk 8.5.9，numpy/OpenCV 已装）：
 
 ```text
-Ran 677 tests in ~28s
+Ran 680 tests in ~28s
 TOTAL  5994 statements  13 missed  99%
 ```
 

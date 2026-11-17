@@ -103,6 +103,20 @@ class TestResolve(I18nEdgeBase):
         with patch.dict(os.environ, {"LC_ALL": "zh_CN.UTF-8"}, clear=True):
             self.assertEqual(i18n._env_language(), "zh_CN")
 
+    def test_env_language_absent(self):
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertIsNone(i18n._env_language())
+
+    def test_system_language_reads_locale(self):
+        with patch.object(i18n.locale, "getlocale",
+                          return_value=("en_US", "UTF-8")):
+            self.assertEqual(i18n._system_language(), "en_US")
+
+    def test_system_language_error_is_soft(self):
+        with patch.object(i18n.locale, "getlocale",
+                          side_effect=OSError("no locale")):
+            self.assertIsNone(i18n._system_language())
+
     def test_empty_pack_falls_back_to_default(self):
         with patch.object(i18n, "_load", return_value={}), \
                 patch.object(i18n, "_warn") as warn:
